@@ -1,0 +1,16 @@
+flowchart TB
+    A["Save クリック"] --> B["NSSavePanel"]
+    B --> C["renderPNG"]
+    C --> D["NSBitmapImageRep 作成"]
+    D --> E["白背景 + 背景画像描画"]
+    E --> F["strokes を再描画"]
+    F --> G{"ツール種別"}
+    G -->|pen| H1["strokePath"]
+    G -->|eraser| H2["blendMode clear"]
+    G -->|shape| H3["fill or stroke"]
+    G -->|text| H4["CTLineDraw"]
+    H1 --> I["PNG エンコード"]
+    H2 --> I
+    H3 --> I
+    H4 --> I
+    I --> J["ファイル書き込み"]

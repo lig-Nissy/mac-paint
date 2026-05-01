@@ -1,0 +1,66 @@
+client:
+  name: basic
+  file-system: device-agnostic
+tools: {}
+targets:
+  "MacPaint-arm64-apple-macosx15.0-release.exe": ["<MacPaint-arm64-apple-macosx15.0-release.exe>"]
+  "MacPaint-arm64-apple-macosx15.0-release.module": ["<MacPaint-arm64-apple-macosx15.0-release.module>"]
+  "PackageStructure": ["<PackageStructure>"]
+  "main": ["<MacPaint-arm64-apple-macosx15.0-release.exe>","<MacPaint-arm64-apple-macosx15.0-release.module>"]
+  "test": ["<MacPaint-arm64-apple-macosx15.0-release.exe>","<MacPaint-arm64-apple-macosx15.0-release.module>"]
+default: "main"
+nodes:
+  "/Users/nishizawa_yuya/doc/mac-paint/Sources/MacPaint/":
+    is-directory-structure: true
+    content-exclusion-patterns: [".git",".build"]
+commands:
+  "/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/Users/nishizawa_yuya/doc/mac-paint/Sources/MacPaint/CanvasModel.swift","/Users/nishizawa_yuya/doc/mac-paint/Sources/MacPaint/ContentView.swift","/Users/nishizawa_yuya/doc/mac-paint/Sources/MacPaint/MacPaintApp.swift"]
+    outputs: ["/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint.build/sources"]
+    description: "Write auxiliary file /Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint.build/sources"
+
+  "/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint.product/Objects.LinkFileList":
+    tool: write-auxiliary-file
+    inputs: ["<link-file-list>","/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint.build/CanvasModel.swift.o","/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint.build/ContentView.swift.o","/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint.build/MacPaintApp.swift.o"]
+    outputs: ["/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint.product/Objects.LinkFileList"]
+    description: "Write auxiliary file /Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint.product/Objects.LinkFileList"
+
+  "/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt":
+    tool: write-auxiliary-file
+    inputs: ["<swift-get-version>","/Library/Developer/CommandLineTools/usr/bin/swiftc"]
+    outputs: ["/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"]
+    always-out-of-date: "true"
+    description: "Write auxiliary file /Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
+
+  "<MacPaint-arm64-apple-macosx15.0-release.exe>":
+    tool: phony
+    inputs: ["/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint"]
+    outputs: ["<MacPaint-arm64-apple-macosx15.0-release.exe>"]
+
+  "<MacPaint-arm64-apple-macosx15.0-release.module>":
+    tool: phony
+    inputs: ["/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint.build/CanvasModel.swift.o","/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint.build/ContentView.swift.o","/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint.build/MacPaintApp.swift.o","/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/Modules/MacPaint.swiftmodule"]
+    outputs: ["<MacPaint-arm64-apple-macosx15.0-release.module>"]
+
+  "C.MacPaint-arm64-apple-macosx15.0-release.exe":
+    tool: shell
+    inputs: ["/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint.build/CanvasModel.swift.o","/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint.build/ContentView.swift.o","/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint.build/MacPaintApp.swift.o","/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint.product/Objects.LinkFileList"]
+    outputs: ["/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint"]
+    description: "Linking ./.build/arm64-apple-macosx/release/MacPaint"
+    args: ["/Library/Developer/CommandLineTools/usr/bin/swiftc","-L","/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release","-o","/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint","-module-name","MacPaint","-Xlinker","-no_warn_duplicate_libraries","-emit-executable","-Xlinker","-dead_strip","-Xlinker","-alias","-Xlinker","_MacPaint_main","-Xlinker","_main","-Xlinker","-rpath","-Xlinker","@loader_path","@/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint.product/Objects.LinkFileList","-target","arm64-apple-macosx13.0","-F","/Library/Developer/CommandLineTools/Library/Developer/Frameworks","-sdk","/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk","-g","-Xlinker","-rpath","-Xlinker","/Library/Developer/CommandLineTools/Library/Developer/Frameworks"]
+
+  "C.MacPaint-arm64-apple-macosx15.0-release.module":
+    tool: shell
+    inputs: ["/Users/nishizawa_yuya/doc/mac-paint/Sources/MacPaint/CanvasModel.swift","/Users/nishizawa_yuya/doc/mac-paint/Sources/MacPaint/ContentView.swift","/Users/nishizawa_yuya/doc/mac-paint/Sources/MacPaint/MacPaintApp.swift","/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt","/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint.build/sources"]
+    outputs: ["/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint.build/CanvasModel.swift.o","/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint.build/ContentView.swift.o","/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint.build/MacPaintApp.swift.o","/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/Modules/MacPaint.swiftmodule"]
+    description: "Compiling Swift Module 'MacPaint' (3 sources)"
+    args: ["/Library/Developer/CommandLineTools/usr/bin/swiftc","-module-name","MacPaint","-emit-dependencies","-emit-module","-emit-module-path","/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/Modules/MacPaint.swiftmodule","-output-file-map","/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint.build/output-file-map.json","-whole-module-optimization","-num-threads","10","-c","@/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/MacPaint.build/sources","-I","/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/Modules","-target","arm64-apple-macosx13.0","-O","-j10","-DSWIFT_PACKAGE","-module-cache-path","/Users/nishizawa_yuya/doc/mac-paint/.build/arm64-apple-macosx/release/ModuleCache","-parseable-output","-Xfrontend","-entry-point-function-name","-Xfrontend","MacPaint_main","-swift-version","5","-F","/Library/Developer/CommandLineTools/Library/Developer/Frameworks","-sdk","/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk","-g","-Xcc","-isysroot","-Xcc","/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk","-Xcc","-fPIC","-Xcc","-g","-package-name","mac_paint"]
+
+  "PackageStructure":
+    tool: package-structure-tool
+    inputs: ["/Users/nishizawa_yuya/doc/mac-paint/Sources/MacPaint/","/Users/nishizawa_yuya/doc/mac-paint/Package.swift","/Users/nishizawa_yuya/doc/mac-paint/Package.resolved"]
+    outputs: ["<PackageStructure>"]
+    description: "Planning build"
+    allow-missing-inputs: true
+

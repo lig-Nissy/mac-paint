@@ -1,0 +1,19 @@
+sequenceDiagram
+    participant U as ユーザー
+    participant G as DragGesture
+    participant M as CanvasModel
+    participant C as SwiftUI Canvas
+
+    U->>G: マウスダウン
+    G->>M: beginStroke
+    M-->>C: 再描画
+
+    loop ドラッグ中
+        U->>G: マウス移動
+        G->>M: extendStroke
+        M-->>C: 再描画
+    end
+
+    U->>G: マウスアップ
+    G->>M: endStroke
+    M-->>C: 再描画

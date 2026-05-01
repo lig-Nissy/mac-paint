@@ -1,0 +1,35 @@
+flowchart TB
+    subgraph App["MacPaintApp.swift エントリ"]
+        A1["App scene + メニュー"]
+        A2["AppIcon.make 動的生成"]
+        A3["--export-iconset モード"]
+    end
+
+    subgraph View["ContentView.swift View層"]
+        V1["Toolbar ツール/色/太さ/塗り"]
+        V2["CanvasView SwiftUI Canvas で描画"]
+        V3["TextEditorOverlay テキスト入力"]
+        V4["CursorTrackingView NSTrackingArea + 透明Cursor"]
+    end
+
+    subgraph Model["CanvasModel.swift Model層"]
+        M1["@Published strokes"]
+        M2["@Published redoStack"]
+        M3["@Published tool/color/lineWidth"]
+        M4["renderPNG → CGContext"]
+    end
+
+    subgraph FW["Apple フレームワーク"]
+        F1["SwiftUI Canvas/Path/Gesture"]
+        F2["AppKit NSImage/NSCursor/NSPanel"]
+        F3["CoreGraphics CGContext/CGPath"]
+        F4["CoreText CTLineDraw"]
+    end
+
+    App --> View
+    View --> Model
+    View --> F1
+    Model --> F2
+    Model --> F3
+    Model --> F4
+    A2 --> F3
