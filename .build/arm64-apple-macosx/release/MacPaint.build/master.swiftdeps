@@ -1,8 +1,0 @@
-version: "Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)"
-options: "3b62e1cd2a1a1342d0f6a2e9c44ee3d848dfc807da4e41b496a0ad712b2996c3"
-build_start_time: [1777623775, 174719000]
-build_end_time: [1777623776, 744685000]
-inputs:
-  "/Users/nishizawa_yuya/doc/mac-paint/Sources/MacPaint/CanvasModel.swift": [1777616103, 443788316]
-  "/Users/nishizawa_yuya/doc/mac-paint/Sources/MacPaint/ContentView.swift": [1777623768, 370846214]
-  "/Users/nishizawa_yuya/doc/mac-paint/Sources/MacPaint/MacPaintApp.swift": [1777621895, 270993441]
