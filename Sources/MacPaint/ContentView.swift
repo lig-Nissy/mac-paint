@@ -128,17 +128,26 @@ struct CanvasView: View {
                     TextEditorOverlay(stroke: stroke)
                 }
 
-                if isHovering, let p = hoverPoint, showsCircleCursor {
-                    Circle()
-                        .stroke(Color.black.opacity(0.7), lineWidth: 1)
-                        .background(
-                            Circle().stroke(Color.white.opacity(0.9), lineWidth: 1)
-                                .padding(1)
-                        )
-                        .frame(width: max(canvas.lineWidth, 4),
-                               height: max(canvas.lineWidth, 4))
-                        .position(p)
-                        .allowsHitTesting(false)
+                if isHovering, let p = hoverPoint {
+                    switch canvas.tool {
+                    case .pen:
+                        PenCursor(color: canvas.color, lineWidth: canvas.lineWidth)
+                            .position(x: p.x + 10, y: p.y - 10)
+                            .allowsHitTesting(false)
+                    case .eraser:
+                        Circle()
+                            .stroke(Color.black.opacity(0.7), lineWidth: 1)
+                            .background(
+                                Circle().stroke(Color.white.opacity(0.9), lineWidth: 1)
+                                    .padding(1)
+                            )
+                            .frame(width: max(canvas.lineWidth, 4),
+                                   height: max(canvas.lineWidth, 4))
+                            .position(p)
+                            .allowsHitTesting(false)
+                    default:
+                        EmptyView()
+                    }
                 }
             }
             .contentShape(Rectangle())
@@ -152,7 +161,7 @@ struct CanvasView: View {
                 }
             }
             .gesture(canvasGesture)
-            .trackingArea(useBlankCursor: showsCircleCursor)
+            .trackingArea(useBlankCursor: usesCustomCursor)
             .onAppear {
                 if canvas.backgroundImage == nil {
                     canvas.canvasSize = geo.size
@@ -166,7 +175,7 @@ struct CanvasView: View {
         }
     }
 
-    private var showsCircleCursor: Bool {
+    private var usesCustomCursor: Bool {
         switch canvas.tool {
         case .pen, .eraser: return true
         default: return false
@@ -297,6 +306,18 @@ struct CanvasView: View {
         path.move(to: b); path.addLine(to: p1)
         path.move(to: b); path.addLine(to: p2)
         return path
+    }
+}
+
+struct PenCursor: View {
+    let color: Color
+    let lineWidth: CGFloat
+
+    var body: some View {
+        Image(systemName: "pencil")
+            .font(.system(size: 20, weight: .regular))
+            .foregroundColor(.black)
+            .shadow(color: .white.opacity(0.9), radius: 0.5, x: 0.5, y: 0.5)
     }
 }
 
