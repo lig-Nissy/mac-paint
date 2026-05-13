@@ -66,7 +66,12 @@ final class CanvasModel: ObservableObject {
     @Published var editingTextValue: String = ""
     @Published var editingTextOrigin: CGPoint = .zero
 
-    @Published var savePreviewImage: NSImage?
+    @Published var savePreview: SavePreview?
+
+    struct SavePreview: Identifiable {
+        let id = UUID()
+        let image: NSImage
+    }
 
     func beginStroke(at point: CGPoint) {
         currentStroke = Stroke(
@@ -166,23 +171,23 @@ final class CanvasModel: ObservableObject {
     private var isSavePanelOpen = false
 
     func saveFile() {
-        if savePreviewImage != nil || isSavePanelOpen { return }
+        if savePreview != nil || isSavePanelOpen { return }
         guard let data = pngDataProvider?() ?? renderPNG(),
               let image = NSImage(data: data) else { return }
-        savePreviewImage = image
+        savePreview = SavePreview(image: image)
     }
 
     func confirmSave() {
-        guard let image = savePreviewImage,
-              let tiff = image.tiffRepresentation,
+        guard let preview = savePreview,
+              let tiff = preview.image.tiffRepresentation,
               let rep = NSBitmapImageRep(data: tiff),
               let data = rep.representation(using: .png, properties: [:]) else {
-            savePreviewImage = nil
+            savePreview = nil
             return
         }
         if isSavePanelOpen { return }
         isSavePanelOpen = true
-        savePreviewImage = nil
+        savePreview = nil
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.png]
         panel.nameFieldStringValue = "whiteboard.png"
@@ -196,7 +201,7 @@ final class CanvasModel: ObservableObject {
     }
 
     func cancelSave() {
-        savePreviewImage = nil
+        savePreview = nil
     }
 
     func openFile() {

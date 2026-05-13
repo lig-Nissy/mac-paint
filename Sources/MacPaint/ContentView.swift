@@ -10,11 +10,8 @@ struct ContentView: View {
             CanvasView()
                 .background(Color(white: 0.95))
         }
-        .sheet(isPresented: Binding(
-            get: { canvas.savePreviewImage != nil },
-            set: { if !$0 { canvas.cancelSave() } }
-        )) {
-            SavePreviewSheet()
+        .sheet(item: $canvas.savePreview) { preview in
+            SavePreviewSheet(image: preview.image)
                 .environmentObject(canvas)
         }
         .onAppear {
@@ -381,21 +378,20 @@ struct CanvasView: View {
 
 struct SavePreviewSheet: View {
     @EnvironmentObject var canvas: CanvasModel
+    let image: NSImage
 
     var body: some View {
         VStack(spacing: 12) {
             Text("保存プレビュー")
                 .font(.headline)
-            if let image = canvas.savePreviewImage {
-                Image(nsImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxWidth: 600, maxHeight: 480)
-                    .border(Color.gray.opacity(0.3))
-                Text("\(Int(image.size.width)) × \(Int(image.size.height)) px")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
+            Image(nsImage: image)
+                .resizable()
+                .scaledToFit()
+                .frame(maxWidth: 600, maxHeight: 480)
+                .border(Color.gray.opacity(0.3))
+            Text("\(Int(image.size.width)) × \(Int(image.size.height)) px")
+                .font(.caption)
+                .foregroundColor(.secondary)
             HStack {
                 Button("キャンセル") { canvas.cancelSave() }
                     .keyboardShortcut(.cancelAction)
