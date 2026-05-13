@@ -131,10 +131,12 @@ struct CanvasSnapshotView: View {
     var body: some View {
         ZStack(alignment: .topLeading) {
             Color.white
+                .frame(width: size.width, height: size.height)
             if let bg = canvas.backgroundImage {
                 Image(nsImage: bg)
                     .resizable()
                     .scaledToFit()
+                    .frame(width: size.width, height: size.height, alignment: .topLeading)
             }
             Canvas { ctx, _ in
                 for s in canvas.strokes {
@@ -142,6 +144,7 @@ struct CanvasSnapshotView: View {
                     CanvasView.drawStatic(stroke: s, in: &ctx)
                 }
             }
+            .frame(width: size.width, height: size.height)
             ForEach(canvas.strokes.filter { $0.tool == .text }) { s in
                 Text(s.text)
                     .font(.system(size: s.fontSize))
@@ -155,7 +158,7 @@ struct CanvasSnapshotView: View {
                     )
             }
         }
-        .frame(width: size.width, height: size.height)
+        .frame(width: size.width, height: size.height, alignment: .topLeading)
     }
 
     private func textHalfSize(_ s: Stroke) -> CGSize {
