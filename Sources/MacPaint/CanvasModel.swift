@@ -160,13 +160,16 @@ final class CanvasModel: ObservableObject {
         backgroundImage = nil
     }
 
+    var pngDataProvider: (() -> Data?)?
+
     func saveFile() {
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.png]
         panel.nameFieldStringValue = "whiteboard.png"
         panel.begin { [weak self] resp in
             guard resp == .OK, let url = panel.url, let self else { return }
-            if let data = self.renderPNG() {
+            let data = self.pngDataProvider?() ?? self.renderPNG()
+            if let data {
                 try? data.write(to: url)
             }
         }
@@ -187,7 +190,6 @@ final class CanvasModel: ObservableObject {
         strokes.removeAll()
         redoStack.removeAll()
         currentStroke = nil
-        canvasSize = image.size
         backgroundImage = image
         objectWillChange.send()
     }
@@ -209,7 +211,8 @@ final class CanvasModel: ObservableObject {
         NSRect(origin: .zero, size: size).fill()
 
         if let bg = backgroundImage {
-            bg.draw(in: NSRect(origin: .zero, size: size))
+            let fitted = aspectFitRect(imageSize: bg.size, in: NSRect(origin: .zero, size: size))
+            bg.draw(in: fitted)
         }
 
         for s in strokes {
@@ -298,6 +301,17 @@ final class CanvasModel: ObservableObject {
             }
         }
         ctx.restoreGState()
+    }
+
+    private func aspectFitRect(imageSize: CGSize, in container: CGRect) -> CGRect {
+        guard imageSize.width > 0, imageSize.height > 0,
+              container.width > 0, container.height > 0 else { return container }
+        let scale = min(container.width / imageSize.width, container.height / imageSize.height)
+        let w = imageSize.width * scale
+        let h = imageSize.height * scale
+        let x = container.midX - w / 2
+        let y = container.midY - h / 2
+        return CGRect(x: x, y: y, width: w, height: h)
     }
 
     private func rect(from a: CGPoint, to b: CGPoint) -> CGRect {

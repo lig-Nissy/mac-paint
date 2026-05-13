@@ -10,6 +10,26 @@ struct ContentView: View {
             CanvasView()
                 .background(Color(white: 0.95))
         }
+        .onAppear {
+            canvas.pngDataProvider = { [weak canvas] in
+                guard let canvas else { return nil }
+                let viewSize = canvas.canvasSize
+                guard viewSize.width > 0, viewSize.height > 0 else { return nil }
+                let renderer = ImageRenderer(
+                    content: CanvasSnapshotView(canvas: canvas, size: viewSize)
+                )
+                if let bg = canvas.backgroundImage, bg.size.width > 0, bg.size.height > 0 {
+                    let scale = max(bg.size.width / viewSize.width,
+                                    bg.size.height / viewSize.height)
+                    renderer.scale = scale
+                } else {
+                    renderer.scale = NSScreen.main?.backingScaleFactor ?? 2
+                }
+                guard let cg = renderer.cgImage else { return nil }
+                let rep = NSBitmapImageRep(cgImage: cg)
+                return rep.representation(using: .png, properties: [:])
+            }
+        }
     }
 }
 
@@ -97,6 +117,46 @@ struct ToolButton: View {
     }
 }
 
+struct CanvasSnapshotView: View {
+    @ObservedObject var canvas: CanvasModel
+    let size: CGSize
+
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            Color.white
+            if let bg = canvas.backgroundImage {
+                Image(nsImage: bg)
+                    .resizable()
+                    .scaledToFit()
+            }
+            Canvas { ctx, _ in
+                for s in canvas.strokes {
+                    if s.tool == .text { continue }
+                    CanvasView.drawStatic(stroke: s, in: &ctx)
+                }
+            }
+            ForEach(canvas.strokes.filter { $0.tool == .text }) { s in
+                Text(s.text)
+                    .font(.system(size: s.fontSize))
+                    .foregroundColor(s.color)
+                    .fixedSize(horizontal: true, vertical: true)
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 2)
+                    .position(
+                        x: s.points[0].x + textHalfSize(s).width,
+                        y: s.points[0].y + textHalfSize(s).height
+                    )
+            }
+        }
+        .frame(width: size.width, height: size.height)
+    }
+
+    private func textHalfSize(_ s: Stroke) -> CGSize {
+        let m = TextMeasure.size(of: s.text, fontSize: s.fontSize)
+        return CGSize(width: m.width / 2 + 4, height: m.height / 2 + 2)
+    }
+}
+
 struct CanvasView: View {
     @EnvironmentObject var canvas: CanvasModel
     @State private var hoverPoint: CGPoint?
@@ -163,14 +223,10 @@ struct CanvasView: View {
             .gesture(canvasGesture)
             .trackingArea(useBlankCursor: usesCustomCursor)
             .onAppear {
-                if canvas.backgroundImage == nil {
-                    canvas.canvasSize = geo.size
-                }
+                canvas.canvasSize = geo.size
             }
             .onChange(of: geo.size) { newValue in
-                if canvas.backgroundImage == nil {
-                    canvas.canvasSize = newValue
-                }
+                canvas.canvasSize = newValue
             }
         }
     }
@@ -206,6 +262,10 @@ struct CanvasView: View {
     }
 
     private func draw(stroke s: Stroke, in ctx: inout GraphicsContext) {
+        CanvasView.drawStatic(stroke: s, in: &ctx)
+    }
+
+    static func drawStatic(stroke s: Stroke, in ctx: inout GraphicsContext) {
         guard !s.points.isEmpty else { return }
         switch s.tool {
         case .pen:
@@ -272,12 +332,12 @@ struct CanvasView: View {
         }
     }
 
-    private func makeRect(_ a: CGPoint, _ b: CGPoint) -> CGRect {
+    private static func makeRect(_ a: CGPoint, _ b: CGPoint) -> CGRect {
         CGRect(x: min(a.x, b.x), y: min(a.y, b.y),
                width: abs(b.x - a.x), height: abs(b.y - a.y))
     }
 
-    private func makeStarPath(in r: CGRect) -> Path {
+    private static func makeStarPath(in r: CGRect) -> Path {
         var path = Path()
         let cx = r.midX, cy = r.midY
         let outer = min(r.width, r.height) / 2
@@ -293,7 +353,7 @@ struct CanvasView: View {
         return path
     }
 
-    private func makeArrowPath(from a: CGPoint, to b: CGPoint, width: CGFloat) -> Path {
+    private static func makeArrowPath(from a: CGPoint, to b: CGPoint, width: CGFloat) -> Path {
         var path = Path()
         path.move(to: a)
         path.addLine(to: b)
