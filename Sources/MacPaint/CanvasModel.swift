@@ -163,8 +163,10 @@ final class CanvasModel: ObservableObject {
     }
 
     var pngDataProvider: (() -> Data?)?
+    private var isSavePanelOpen = false
 
     func saveFile() {
+        if savePreviewImage != nil || isSavePanelOpen { return }
         guard let data = pngDataProvider?() ?? renderPNG(),
               let image = NSImage(data: data) else { return }
         savePreviewImage = image
@@ -178,6 +180,9 @@ final class CanvasModel: ObservableObject {
             savePreviewImage = nil
             return
         }
+        if isSavePanelOpen { return }
+        isSavePanelOpen = true
+        savePreviewImage = nil
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.png]
         panel.nameFieldStringValue = "whiteboard.png"
@@ -186,7 +191,7 @@ final class CanvasModel: ObservableObject {
             if resp == .OK, let url = panel.url {
                 try? data.write(to: url)
             }
-            self.savePreviewImage = nil
+            self.isSavePanelOpen = false
         }
     }
 
