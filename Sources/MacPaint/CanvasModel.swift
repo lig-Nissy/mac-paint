@@ -66,6 +66,8 @@ final class CanvasModel: ObservableObject {
     @Published var editingTextValue: String = ""
     @Published var editingTextOrigin: CGPoint = .zero
 
+    @Published var savePreviewImage: NSImage?
+
     func beginStroke(at point: CGPoint) {
         currentStroke = Stroke(
             tool: tool,
@@ -163,16 +165,33 @@ final class CanvasModel: ObservableObject {
     var pngDataProvider: (() -> Data?)?
 
     func saveFile() {
+        guard let data = pngDataProvider?() ?? renderPNG(),
+              let image = NSImage(data: data) else { return }
+        savePreviewImage = image
+    }
+
+    func confirmSave() {
+        guard let image = savePreviewImage,
+              let tiff = image.tiffRepresentation,
+              let rep = NSBitmapImageRep(data: tiff),
+              let data = rep.representation(using: .png, properties: [:]) else {
+            savePreviewImage = nil
+            return
+        }
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.png]
         panel.nameFieldStringValue = "whiteboard.png"
         panel.begin { [weak self] resp in
-            guard resp == .OK, let url = panel.url, let self else { return }
-            let data = self.pngDataProvider?() ?? self.renderPNG()
-            if let data {
+            guard let self else { return }
+            if resp == .OK, let url = panel.url {
                 try? data.write(to: url)
             }
+            self.savePreviewImage = nil
         }
+    }
+
+    func cancelSave() {
+        savePreviewImage = nil
     }
 
     func openFile() {
@@ -192,6 +211,25 @@ final class CanvasModel: ObservableObject {
         currentStroke = nil
         backgroundImage = image
         objectWillChange.send()
+        resizeWindowToFit(imageSize: image.size)
+    }
+
+    private func resizeWindowToFit(imageSize: CGSize) {
+        guard let window = NSApp.windows.first(where: { $0.isVisible }) else { return }
+        let screen = window.screen ?? NSScreen.main
+        let visible = screen?.visibleFrame ?? CGRect(x: 0, y: 0, width: 1600, height: 1000)
+        let toolbarH: CGFloat = 48
+        let chromeH = window.frame.height - (window.contentView?.frame.height ?? window.frame.height)
+        let maxW = visible.width * 0.95
+        let maxH = visible.height * 0.95 - chromeH - toolbarH
+        let scale = min(1, min(maxW / imageSize.width, maxH / imageSize.height))
+        let contentW = imageSize.width * scale
+        let contentH = imageSize.height * scale + toolbarH
+        var frame = window.frame
+        frame.size = CGSize(width: contentW, height: contentH + chromeH)
+        frame.origin.x = visible.midX - frame.width / 2
+        frame.origin.y = visible.midY - frame.height / 2
+        window.setFrame(frame, display: true, animate: true)
     }
 
     func renderPNG() -> Data? {
