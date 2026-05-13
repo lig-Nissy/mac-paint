@@ -8,6 +8,30 @@ struct MacPaintApp: App {
     init() {
         AppIcon.handleExportArgIfNeeded()
         NSApplication.shared.applicationIconImage = AppIcon.make(size: 512)
+        installControlZMonitor()
+    }
+
+    private func installControlZMonitor() {
+        let canvas = self.canvas
+        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            guard event.modifierFlags.contains(.control),
+                  !event.modifierFlags.contains(.command),
+                  let chars = event.charactersIgnoringModifiers?.lowercased(),
+                  chars == "z" else {
+                return event
+            }
+            if event.window?.firstResponder is NSTextView {
+                return event
+            }
+            DispatchQueue.main.async {
+                if event.modifierFlags.contains(.shift) {
+                    canvas.redo()
+                } else {
+                    canvas.undo()
+                }
+            }
+            return nil
+        }
     }
 
     var body: some Scene {
@@ -34,10 +58,6 @@ struct MacPaintApp: App {
                 Button("やり直し") { canvas.redo() }
                     .keyboardShortcut("z", modifiers: [.command, .shift])
                     .disabled(canvas.redoStack.isEmpty)
-                Button("元に戻す (Ctrl)") { canvas.undo() }
-                    .keyboardShortcut("z", modifiers: .control)
-                Button("やり直し (Ctrl)") { canvas.redo() }
-                    .keyboardShortcut("z", modifiers: [.control, .shift])
             }
         }
     }
